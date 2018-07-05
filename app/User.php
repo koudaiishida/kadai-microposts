@@ -92,47 +92,44 @@ public function feed_microposts()
     
     
 
- public function index()
+    
+    
+public function favorites()
     {
-        $data = [];
-        if (\Auth::check()) {
-            $user = \Auth::user();
-            $microposts = $user->feed_microposts()->orderBy('created_at', 'desc')->paginate(10);
-
-            $data = [
-                'user' => $user,
-                'microposts' => $microposts,
-            ];
-        }
-        return view('welcome', $data);
+        return $this->belongsToMany(Micropost::class, 'favorites', 'user_id', 'micropost_id')->withTimestamps();
     }
 
 
 
+ public function favorite($micropostId)
+{
+    $exist = $this->is_favoriting($micropostId);
+    if ($exist) {
+        return false;
+    } else {
+        $this->favorites()->attach($micropostId);
+        return true;
+    }
+}
 
 
 
+public function unfavorite($micropostId)
+{
+    $exist = $this->is_favoriting($micropostId);
+
+    if ($exist ) {
+        $this->favorites()->detach($micropostId);
+        return true;
+    } else {
+        return false;
+    }
+}
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+public function is_favoriting($micropostId) {
+    return $this->favorites()->where('micropost_id', $micropostId)->exists();
+}
 
 
 
